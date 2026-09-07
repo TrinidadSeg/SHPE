@@ -1,0 +1,9 @@
+fastapi==0.115.0
+uvicorn[standard]==0.31.0
+sqlalchemy==2.0.35
+pydantic[email]==2.9.2
+python-jose[cryptography]==3.3.0
+bcrypt==4.2.0
+python-multipart==0.0.12
+psycopg[binary]==3.2.3
+gunicorn==23.0.0
