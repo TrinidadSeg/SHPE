@@ -72,12 +72,15 @@ def award_points(
     db: Session = Depends(get_db),
     officer: User = Depends(require_officer),
 ):
-    target = db.get(User, payload.user_id)
+    target = db.query(User).filter(User.email == payload.email.lower()).first()
     if not target:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"No account found for {payload.email}. They need to register first.",
+        )
 
     entry = PointEntry(
-        user_id=payload.user_id,
+        user_id=target.id,
         event_id=None,  # manual award, not tied to an event
         points=payload.points,
         reason=payload.reason,
@@ -86,14 +89,13 @@ def award_points(
     db.add(entry)
     db.commit()
 
-    # Return the target's updated total + history.
     entries = (
         db.query(PointEntry)
-        .filter(PointEntry.user_id == payload.user_id)
+        .filter(PointEntry.user_id == target.id)
         .order_by(PointEntry.created_at.desc())
         .all()
     )
     return MyPoints(
-        total=total_for(db, payload.user_id),
+        total=total_for(db, target.id),
         history=[PointHistoryItem.model_validate(e) for e in entries],
     )
