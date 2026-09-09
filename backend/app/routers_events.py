@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Event, User
+from app.models import Event, User, CheckinWindow, PointEntry
 from app.schemas import EventCreate, EventUpdate, EventOut
 from app.auth import get_current_user, require_officer
 
@@ -63,5 +63,11 @@ def delete_event(
     event = db.get(Event, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
+
+    # Clean up everything that references this event first, so the delete
+    # doesn't fail on a foreign-key constraint (point history, check-in windows).
+    db.query(PointEntry).filter(PointEntry.event_id == event_id).delete()
+    db.query(CheckinWindow).filter(CheckinWindow.event_id == event_id).delete()
+
     db.delete(event)
     db.commit()
