@@ -72,7 +72,11 @@ def award_points(
     db: Session = Depends(get_db),
     officer: User = Depends(require_officer),
 ):
-    target = db.query(User).filter(User.email == payload.email.lower()).first()
+    target = (
+    db.query(User)
+    .filter(func.lower(User.email) == payload.email.strip().lower())
+    .first()
+)
     if not target:
         raise HTTPException(
             status_code=404,
