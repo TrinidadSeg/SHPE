@@ -114,7 +114,7 @@ class LeaderboardRow(BaseModel):
 
 
 class AwardPoints(BaseModel):
-    user_id: int
+    email: EmailStr
     points: int
     reason: str
 
